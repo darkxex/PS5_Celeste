@@ -22,6 +22,7 @@ extern void Celeste_P8_init(void);
 extern void Celeste_P8_update(void);
 extern void Celeste_P8_draw(void);
 
+extern Celeste_P8_bool_t Celeste_P8_is_wall_sliding(void); //the player slid down a wall in the last update
 extern void Celeste_P8__DEBUG(void); //debug functionality
 
 //state functionality

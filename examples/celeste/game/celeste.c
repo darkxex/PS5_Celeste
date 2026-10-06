@@ -296,6 +296,7 @@ static bool will_restart = false;
 static int delay_restart = 0;
 static bool got_fruit[FRUIT_COUNT] = {false};
 static bool has_dashed = false;
+static bool wall_sliding = false; //the player slid down a wall during this update (for the front end's rumble)
 static int sfx_timer = 0;
 static bool has_key = false;
 static bool pause_player = false;
@@ -776,6 +777,7 @@ static void PLAYER_update(OBJ* this) {
 		// wall slide
 		if (input!=0 && OBJ_is_solid(this, input,0) && !OBJ_is_ice(this, input,0)) {
 			maxfall=0.4;
+			if (!on_ground) wall_sliding = true;
 			if (P8rnd(10)<2) {
 				init_object(OBJ_SMOKE,this->x+input*6,this->y);
 			}
@@ -1679,6 +1681,7 @@ static void load_room(int x, int y) {
 /////////////////////
 
 void Celeste_P8_update() {
+	wall_sliding = false;
 	frames=((frames+1)%30);
 	if (frames==0 && level_index()<30) {
 		seconds=((seconds+1)%60);
@@ -2030,3 +2033,7 @@ void Celeste_P8_load_state(const void* st_) {
 }
 
 #undef LISTGVARS
+
+Celeste_P8_bool_t Celeste_P8_is_wall_sliding(void) {
+	return wall_sliding;
+}

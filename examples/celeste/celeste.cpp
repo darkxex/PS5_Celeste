@@ -4,7 +4,7 @@
  * Celeste Classic (ccleste's C port of the PICO-8 cartridge, game/) runs as the
  * screen of PS5_VKHomebrewUI's kit (ps5/ui/kit.hpp): it is drawn by the kit's
  * Vulkan renderer, its effects and music play on the kit's mixer on the
- * console's audio output, and the pad's rumble and light bar are the kit's. The
+ * console's audio output, and the pad's rumble is the kit's (its light bar is left alone). The
  * game itself, its picture and its sound, are in kit/game.cpp. OPTIONS pauses;
  * holding it for a second leaves (back to the menu, or out of a title of one
  * program).
@@ -116,9 +116,6 @@ public:
 		}
 		kit.play(feedback, screen->info().sounds, choices.haptics);
 		feedback.clear();
-		if (choices.light_bar) {
-			kit.light_bar(screen->info().accent);
-		}
 		kit.tick(dt);
 
 		// backdrop, scene, [the glass copy], overlay, post: the order a design is drawn in
