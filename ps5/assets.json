@@ -220,6 +220,19 @@
       "url": "https://fonts.google.com/specimen/Patrick+Hand",
       "changes": "the TrueType file, for the samples' settings windows in the title's theme",
       "licence_file": "kit:third_party/fonts/PatrickHand-LICENSE.txt"
+    },
+    {
+      "path": "celeste",
+      "from": "file",
+      "source": "examples/celeste/data",
+      "used_by": [
+        "celeste"
+      ],
+      "title": "Celeste Classic's sprite sheet, font, sound effects and songs",
+      "author": "Maddy Thorson and Noel Berry (Celeste Classic); ported to C by lemon32767 (ccleste)",
+      "licence": "no licence published upstream (Celeste Classic is free to play; ccleste's repository carries none)",
+      "url": "https://github.com/lemon32767/ccleste",
+      "changes": "sound effects taken by ccleste from JeffRuLz's Celeste-Classic-GBA (maxmod_data); songs converted by ccleste from the PICO-8 .wav dumps"
     }
   ]
 }

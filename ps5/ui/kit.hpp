@@ -47,9 +47,11 @@
 namespace ps5ui {
 
 // The screen of a title made with new-title.py --ui: its copy of one of the
-// kit's designs, in examples/<program>/kit/screen.cpp (compiled outside the
-// program's namespace, as every file in a program's kit/ folder is).
-std::unique_ptr<hui::app::Concept> make_screen(hui::app::Context &context);
+// kit's designs, or its own (Celeste's game), in examples/<program>/kit/
+// (compiled outside the program's namespace, as every file in a program's kit/
+// folder is). It is given the kit, for the mixer and the renderer.
+class Kit;
+std::unique_ptr<hui::app::Concept> make_screen(hui::app::Context &context, Kit &kit);
 
 // The title's theme: the one picked on the start screen's Themes, kept in
 // /app0/hui/theme.txt. It styles the start screen, the Samples menu and the

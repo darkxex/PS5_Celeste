@@ -1,13 +1,13 @@
 /*
  * Celeste - its program, made from the PS5 Vulkan Template's UI starter.
  *
- * One complete design of PS5_VKHomebrewUI's kit (ps5/ui/kit.hpp) fills the
- * screen: its procedural backdrop, its scene, its frosted overlay and its post
- * overlay, its sounds on the console's audio output, its rumble and its light
- * bar colour. There is no switcher: every button is the design's, and holding
- * OPTIONS for a second leaves (back to the menu, or out of a title of one
- * program). The design is this title's copy of the kit's "neon", in
- * kit/screen.cpp, to change at will.
+ * Celeste Classic (ccleste's C port of the PICO-8 cartridge, game/) runs as the
+ * screen of PS5_VKHomebrewUI's kit (ps5/ui/kit.hpp): it is drawn by the kit's
+ * Vulkan renderer, its effects and music play on the kit's mixer on the
+ * console's audio output, and the pad's rumble and light bar are the kit's. The
+ * game itself, its picture and its sound, are in kit/game.cpp. OPTIONS pauses;
+ * holding it for a second leaves (back to the menu, or out of a title of one
+ * program).
  *
  * Copyright (C) 2026 Mihawk
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -16,9 +16,9 @@
 #include "kit.hpp"
 
 // The design on screen: this title's own, in kit/screen.cpp
-std::unique_ptr<hui::app::Concept> makeScreen(hui::app::Context &context)
+std::unique_ptr<hui::app::Concept> makeScreen(hui::app::Context &context, ps5ui::Kit &kit)
 {
-	return ps5ui::make_screen(context);
+	return ps5ui::make_screen(context, kit);
 }
 
 class VulkanExample : public ps5ui::KitExample
@@ -41,7 +41,7 @@ public:
 	{
 		title = "Celeste";
 		name = "celeste";
-		// The kit draws the whole screen and owns the pad
+		// The game draws the whole screen and owns the pad
 		settings.overlay = false;
 		ps5.ownOverlay = true;
 		defaultClearColor = { { 0.0f, 0.0f, 0.0f, 1.0f } };
@@ -50,12 +50,15 @@ public:
 	void prepare() override
 	{
 		VulkanExampleBase::prepare();
-		prepareKit();
+		// The game brings its own music, and the designs' covers are not needed
+		ps5ui::Kit::Options options;
+		options.music = false;
+		options.covers = false;
+		prepareKit(options);
 		context = std::make_unique<hui::app::Context>(hui::app::Context{ kit.fonts, kit.catalog, telemetry, choices });
-		screen = makeScreen(*context);
+		screen = makeScreen(*context, kit);
 		screen->enter();
 		kit.apply(choices);
-		feedback.play(hui::audio::Cue::welcome);
 		prepared = true;
 	}
 
@@ -107,10 +110,6 @@ public:
 		holdOptions(dt);
 		updateTelemetry();
 		screen->update(input, dt, feedback);
-		// CIRCLE the design did not take (it answers the CIRCLE it uses with a cue) leaves
-		if (!ps5.frameBudget && input.is_pressed(hui::Action::back) && feedback.cues.empty()) {
-			quit = true;
-		}
 		if (context->settings_changed) {
 			context->settings_changed = false;
 			kit.apply(choices);

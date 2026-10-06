@@ -44,6 +44,10 @@ foreach(id IN LISTS PS5_SAMPLES)
 	endif()
 	configure_file(src/wrap.cpp.in ${CMAKE_BINARY_DIR}/wrap/${id}.cpp @ONLY)
 	list(APPEND sample_sources ${CMAKE_BINARY_DIR}/wrap/${id}.cpp)
+	# A program's C code (examples/<id>/game/*.c), compiled as it stands
+	file(GLOB program_c_sources ${ROOT}/examples/${id}/game/*.c)
+	set_source_files_properties(${program_c_sources} PROPERTIES COMPILE_OPTIONS "-w")
+	list(APPEND sample_sources ${program_c_sources})
 endforeach()
 file(WRITE ${CMAKE_BINARY_DIR}/samples.txt "${PS5_SAMPLES}")
 
