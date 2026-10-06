@@ -1,0 +1,19 @@
+ccleste - legal use
+===================
+
+PIRACY IS NOT CONDONED. This title contains no games, no BIOS files, no
+console firmware and no decryption keys, and none will ever be provided or
+linked to. Use only games you own and files from hardware you own.
+Downloading or sharing games, BIOS files, firmware or keys you do not own is
+piracy: do not do it, and do not ask for help with it.
+
+Licences: the title's own code and Sascha Willems' Vulkan examples are MIT.
+It links the PS5 platform layer and the UI kit, which are GPL-3.0-or-later, so the
+title as distributed is under GPL-3.0-or-later as a whole, and its complete
+source is offered with it. Every part, its licence and its source are listed
+in licenses/README.txt; the assets and theirs in assets/NOTICES.txt.
+
+Not affiliated with or endorsed by Sony Interactive Entertainment.
+"PlayStation" and "PS5" are trademarks of Sony Interactive Entertainment Inc.
+Vulkan is a registered trademark of the Khronos Group Inc.; the RADV port is
+not a conformant product (its conformanceVersion is 0.0.0.0).

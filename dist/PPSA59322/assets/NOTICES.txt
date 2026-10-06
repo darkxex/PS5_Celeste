@@ -1,0 +1,55 @@
+ccleste - the assets in this folder, their authors and licences.
+
+Roboto-Medium.ttf: Roboto Medium, Christian Robertson (Google Fonts). Apache-2.0. https://fonts.google.com/specimen/Roboto
+    Licence text: LICENSES/Apache-2.0.txt
+hui/fonts/inter-regular.huifont: Inter Regular, The Inter Project Authors. OFL-1.1. https://github.com/rsms/inter
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/Inter-LICENSE.txt
+hui/fonts/inter-semibold.huifont: Inter SemiBold, The Inter Project Authors. OFL-1.1. https://github.com/rsms/inter
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/Inter-LICENSE.txt
+hui/fonts/montserrat-medium.huifont: Montserrat Medium, The Montserrat Project Authors. OFL-1.1. https://github.com/JulietaUla/Montserrat
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/Montserrat-LICENSE.txt
+hui/fonts/dejavu-sans-mono.huifont: DejaVu Sans Mono, Bitstream, Inc.; the DejaVu changes are in the public domain. Bitstream-Vera. https://dejavu-fonts.github.io/
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/DejaVu-LICENSE.txt
+hui/fonts/press-start-2p.huifont: Press Start 2P, The Press Start 2P Project Authors. OFL-1.1. https://fonts.google.com/specimen/Press+Start+2P
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/PressStart2P-LICENSE.txt
+hui/fonts/patrick-hand.huifont: Patrick Hand, Patrick Wagesreiter. OFL-1.1. https://fonts.google.com/specimen/Patrick+Hand
+    Changes: a signed-distance-field atlas, made by ps5-homebrew-ui's tools/bake-fonts.sh
+    Licence text: LICENSES/PatrickHand-LICENSE.txt
+hui/audio/sfx/glass: The glass sound set (ProsperoEden's sound effects), BlackBearReloaded. GPL-3.0-or-later. https://github.com/blackbearreloaded/ps5-homebrew-ui
+    Changes: generated with ElevenLabs Sound Effects v2 for ProsperoEden, trimmed, faded and levelled by ps5-homebrew-ui's tools/process-sfx.py (its THIRD_PARTY_NOTICES.md)
+    Licence text: LICENSES/GPL-3.0.txt
+hui/audio/sfx/paper: The paper sound set (ProsperoPuzzles' sound effects), BlackBearReloaded. GPL-3.0-or-later. https://github.com/blackbearreloaded/ps5-homebrew-ui
+    Changes: generated with ElevenLabs Sound Effects v2 for ProsperoPuzzles, trimmed, faded and levelled by ps5-homebrew-ui's tools/process-sfx.py (its THIRD_PARTY_NOTICES.md)
+    Licence text: LICENSES/GPL-3.0.txt
+hui/audio/music: First Light, Open Strings and Quiet Hours, BlackBearReloaded. GPL-3.0-or-later. https://github.com/blackbearreloaded/ps5-homebrew-ui
+    Changes: 48 kHz OGG Vorbis at -18 LUFS, as ps5-homebrew-ui ships them
+    Licence text: LICENSES/GPL-3.0.txt
+hui/fonts/Inter-Regular.ttf: Inter Regular, The Inter Project Authors. OFL-1.1. https://github.com/rsms/inter
+    Changes: the TrueType file, for the samples' settings windows in the title's theme
+    Licence text: LICENSES/Inter-LICENSE.txt
+hui/fonts/Inter-SemiBold.ttf: Inter SemiBold, The Inter Project Authors. OFL-1.1. https://github.com/rsms/inter
+    Changes: the TrueType file, for the samples' settings windows in the title's theme
+    Licence text: LICENSES/Inter-LICENSE.txt
+hui/fonts/DejaVuSansMono.ttf: DejaVu Sans Mono, Bitstream, Inc.; the DejaVu changes are in the public domain. Bitstream-Vera. https://dejavu-fonts.github.io/
+    Changes: the TrueType file, for the samples' settings windows in the title's theme
+    Licence text: LICENSES/DejaVu-LICENSE.txt
+hui/fonts/PressStart2P-Regular.ttf: Press Start 2P, The Press Start 2P Project Authors. OFL-1.1. https://fonts.google.com/specimen/Press+Start+2P
+    Changes: the TrueType file, for the samples' settings windows in the title's theme
+    Licence text: LICENSES/PressStart2P-LICENSE.txt
+hui/fonts/PatrickHand-Regular.ttf: Patrick Hand, Patrick Wagesreiter. OFL-1.1. https://fonts.google.com/specimen/Patrick+Hand
+    Changes: the TrueType file, for the samples' settings windows in the title's theme
+    Licence text: LICENSES/PatrickHand-LICENSE.txt
+celeste: Celeste Classic's sprite sheet, font, sound effects and songs, Maddy Thorson and Noel Berry (Celeste Classic); ported to C by lemon32767 (ccleste). no licence published upstream (Celeste Classic is free to play; ccleste's repository carries none). https://github.com/lemon32767/ccleste
+    Changes: sound effects taken by ccleste from JeffRuLz's Celeste-Classic-GBA (maxmod_data); songs converted by ccleste from the PICO-8 .wav dumps
+
+CC0-1.0: https://creativecommons.org/publicdomain/zero/1.0/
+CC-BY-3.0: https://creativecommons.org/licenses/by/3.0/
+MIT: made by ps5/tools/generate_assets.py (from PS5 Vulkan Template, github.com/mihawk-99/PS5_VulkanTemplate), under LICENSE.md
+OFL-1.1: https://openfontlicense.org
+Bitstream-Vera: https://dejavu-fonts.github.io/License.html
+GPL-3.0-or-later: https://www.gnu.org/licenses/gpl-3.0.html
