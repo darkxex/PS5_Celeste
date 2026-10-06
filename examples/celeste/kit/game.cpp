@@ -3,11 +3,11 @@
 //
 // The cartridge draws through sixteen PICO-8 calls, which land here: a 128x128 picture
 // in the PICO-8 palette, rasterised on the CPU as the SDL front end of ccleste did.
-// The picture is scaled up eight times into a 1024x1024 texture that the kit's Vulkan
-// renderer draws centred, texel for texel (the kit's sampler is bilinear, so the size
-// is what keeps the pixels sharp: every PICO-8 pixel is an 8x8 block). Its sound goes
-// through the kit's mixer: the cartridge's effects as clips, and its five songs as a
-// stream, on the console's audio output.
+// The picture is drawn with the kit's Vulkan renderer as rectangles of one colour,
+// every PICO-8 pixel an 8x8 block of its 1920x1080 canvas: on the console's 3840x2160
+// surface a block is 16 pixels on whole pixels, so it is sharp however the sampler
+// filters. Its sound goes through the kit's mixer: the cartridge's effects as clips,
+// and its five songs as a stream, on the console's audio output.
 //
 // Copyright (C) 2026 Mihawk
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -43,8 +43,8 @@ namespace {
 using namespace hui;
 
 constexpr int kSize = 128;     // the PICO-8 screen
-constexpr int kUpscale = 8;    // the texture is this many times larger
-constexpr int kTexture = kSize * kUpscale;
+constexpr std::uint32_t kBlack = 0xff000000u; // the picture's black, RGBA8
+constexpr float kBlock = 8.0f; // virtual pixels (of the kit's 1920x1080) in one PICO-8 pixel
 constexpr float kStep = 1.0f / 30.0f; // the cartridge runs at 30 updates a second
 constexpr float kMusicGain = 0.8f;
 
@@ -353,13 +353,12 @@ public:
 		ready_ = load_bitmap(folder + "/gfx.bmp", sprites_) && load_bitmap(folder + "/font.bmp", font_);
 		sound_.load(folder);
 		for (int i = 0; i < 16; i++) {
-			// RGBA8 with red in the lowest byte, as the texture reads it
+			// RGBA8 with red in the lowest byte, as the picture keeps it
 			base_palette_[i] = 0xff000000u | ((kBasePalette[i] & 0xff) << 16) | (kBasePalette[i] & 0xff00) |
 				((kBasePalette[i] >> 16) & 0xff);
 		}
 		reset_palette();
 		picture_.assign((size_t)kSize * kSize, 0xff000000u);
-		upscaled_.resize((size_t)kTexture * kTexture);
 		Celeste_P8_set_call_func(reinterpret_cast<Celeste_P8_cb_func_t>(&Game::call));
 		Celeste_P8_set_rndseed((unsigned)(std::time(nullptr) ^ (std::uint64_t)(now_seconds() * 1e3)));
 		Celeste_P8_init();
@@ -368,7 +367,6 @@ public:
 	~Game() override
 	{
 		sound_.stop_all();
-		kit_.renderer.destroy_texture(texture_);
 		instance = nullptr;
 	}
 
@@ -402,7 +400,7 @@ public:
 			clock_ = 0.0f; // a stall is not caught up with
 		}
 		if (steps > 0) {
-			upload();
+			build_runs();
 		}
 		if (death_) {
 			death_ = false;
@@ -422,14 +420,16 @@ public:
 
 	void draw(app::Frame &frame) const override
 	{
+		// The picture is drawn as rectangles, so it is as sharp as the surface is
+		// large (3840x2160 on the console: a block is 16 pixels on whole pixels,
+		// which the kit's shader fills exactly, with nothing to blend)
 		gfx::DrawList &list = frame.scene;
-		if (texture_ != 0) {
-			// One texel to one virtual pixel, on whole pixels: the kit's sampler is
-			// bilinear, which then has nothing to blend
-			const float side = (float)kTexture;
-			list.image(texture_, { (gfx::kVirtualWidth - side) * 0.5f, (gfx::kVirtualHeight - side) * 0.5f, side, side },
-				gfx::kFullUv,
-				gfx::Color{ 1.0f, 1.0f, 1.0f, 1.0f });
+		const float side = kSize * kBlock;
+		const float left = (gfx::kVirtualWidth - side) * 0.5f, top = (gfx::kVirtualHeight - side) * 0.5f;
+		for (const Run &run : runs_) {
+			list.rounded_rect({ left + run.x * kBlock, top + run.y * kBlock, run.w * kBlock, run.h * kBlock }, 0.0f,
+				gfx::Color{ (float)(run.rgba & 0xff) / 255.0f, (float)((run.rgba >> 8) & 0xff) / 255.0f,
+					(float)((run.rgba >> 16) & 0xff) / 255.0f, 1.0f });
 		}
 	}
 
@@ -481,23 +481,36 @@ private:
 		}
 	}
 
-	void upload()
+	// The picture as the fewest rectangles of one colour that a greedy pass finds: runs
+	// along a row, joined to the run above when it spans the same columns. Black is
+	// the screen's clear colour, so it is not drawn.
+	void build_runs()
 	{
-		// Each picture pixel is a block of kUpscale x kUpscale
+		runs_.clear();
+		int open[kSize]; // the run starting at each column in the row above, or -1
+		std::fill_n(open, kSize, -1);
 		for (int y = 0; y < kSize; y++) {
-			std::uint32_t *row = &upscaled_[(size_t)y * kUpscale * kTexture];
-			for (int x = 0; x < kSize; x++) {
-				std::fill_n(row + x * kUpscale, kUpscale, picture_[(size_t)y * kSize + x]);
+			int next[kSize];
+			std::fill_n(next, kSize, -1);
+			for (int x = 0; x < kSize;) {
+				const std::uint32_t c = picture_[(size_t)y * kSize + x];
+				int end = x + 1;
+				while (end < kSize && picture_[(size_t)y * kSize + end] == c) {
+					end++;
+				}
+				if (c != kBlack) {
+					const int above = open[x];
+					if (above >= 0 && runs_[above].w == end - x && runs_[above].rgba == c) {
+						runs_[above].h++;
+						next[x] = above;
+					} else {
+						runs_.push_back({ x, y, end - x, 1, c });
+						next[x] = (int)runs_.size() - 1;
+					}
+				}
+				x = end;
 			}
-			for (int j = 1; j < kUpscale; j++) {
-				std::memcpy(row + (size_t)j * kTexture, row, sizeof(std::uint32_t) * kTexture);
-			}
-		}
-		const std::uint32_t fresh = kit_.renderer.create_texture(kTexture, kTexture,
-			reinterpret_cast<const std::uint8_t *>(upscaled_.data()));
-		if (fresh != 0) {
-			kit_.renderer.destroy_texture(texture_);
-			texture_ = fresh;
+			std::copy_n(next, kSize, open);
 		}
 	}
 
@@ -741,8 +754,12 @@ private:
 	bool ready_ = false;
 	std::uint32_t base_palette_[16] = {};
 	std::uint32_t palette_[16] = {};
-	std::vector<std::uint32_t> picture_, upscaled_;
-	std::uint32_t texture_ = 0;
+	std::vector<std::uint32_t> picture_;
+	struct Run {
+		int x, y, w, h;
+		std::uint32_t rgba;
+	};
+	std::vector<Run> runs_;
 	int camera_x_ = 0, camera_y_ = 0;
 	bool screenshake_ = true;
 	bool paused_ = false;
