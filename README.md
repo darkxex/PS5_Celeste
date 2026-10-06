@@ -1,50 +1,98 @@
-# Celeste
+# ccleste PS5
 
-A PS5 homebrew title (`PPSA59322`) on RADV, made from the
-[PS5 Vulkan Template](https://github.com/mihawk-99/PS5_VulkanTemplate) foundation at
-`1cefee86` with its UI module: Sascha Willems' Vulkan example base class with its PS5
-hooks, the PS5 layer (the launch, the pad, sound, klog, test runs, the build and the
-console tools), BlackBearReloaded's UI kit drawn with Vulkan (through my fork
-PS5_VKHomebrewUI), and one program, `examples/celeste/celeste.cpp`, whose screen is its
-own copy of the kit's "neon" design, `examples/celeste/kit/screen.cpp`.
+![screenshot](https://raw.githubusercontent.com/lemon-sherbet/ccleste/master/screenshot.png)
 
-## Building and running
+This is a C source port of the [original celeste (Celeste classic)](https://www.lexaloffle.com/bbs/?tid=2145) for the PICO-8, designed to be portable. PC and 3DS are the main supported platforms, though other people are [maintaining ports to other platforms](https://github.com/lemon32767/ccleste/network/members).
 
-It builds against my PS5 stack, checked out beside it: PS5_Vulkan (the RADV release
-archive, the link recipe, the native tool and `libc.prx`), the payload SDK fork
-(`ps5/tools/setup-sdk.sh` installs it at the pinned revision) and PS5_VKHomebrewUI
-(`ps5/ui/setup-kit.sh` exports the kit at the pinned revision, from GitHub when it is
-not beside it).
+## PS5 port
 
-```bash
-ps5/tools/build.sh              # dist/PPSA59322/: eboot.bin, sce_sys, assets (the kit's fonts and sounds)
-ps5/tools/deploy.sh             # upload what changed, over the console's FTP server
-ps5/tools/run.sh                # a test run: 300 frames, the last one saved and checked
-ps5/tools/run.sh --menu         # no test: the program, until it ends itself
-ps5/tools/host-reference.sh     # the same frames on this PC's Vulkan driver
+This repository ports the game to the PS5 using [PS5_VulkanTemplate](https://github.com/mihawk-99/PS5_VulkanTemplate). The game code (`examples/celeste/game/celeste.c`, from ccleste) is unchanged except for a function that reports wall sliding, used for the controller rumble. The rest is the port:
+
+- **Video:** the 128x128 PICO-8 picture is rasterised on the CPU and drawn by the template's UI kit through its Vulkan renderer, as rectangles on whole pixels, so it stays sharp on a 3840x2160 output.
+- **Audio:** the sound effects and the five songs play on the UI kit's mixer, over the console's audio output.
+- **Input:** DualSense, with light rumble when dashing and when sliding down a wall, and a stronger one when dying. The controller's light bar is left alone.
+- **Code:** `examples/celeste/kit/game.cpp` is the front end that replaces `sdl12main.c`; the game's data is in `examples/celeste/data/`.
+
+| DualSense         | Action                     |
+|:-----------------:|:---------------------------|
+| D-pad / left stick| Move, look up and down     |
+| Cross / Triangle  | Jump                       |
+| Square / Circle   | Dash                       |
+| OPTIONS           | Pause (hold for 1 s to exit) |
+
+Build it with `ps5/tools/build.sh` (see the template's documentation for the payload SDK and RADV it needs). The SDL, 3DS and TAS instructions below belong to the original ccleste and do not apply to the PS5 build.
+
+Go to [the releases tab](https://github.com/lemon-sherbet/ccleste/releases) for the latest pre-built binaries.
+
+An experimental web port is also available [here](https://lemon32767.github.io/ccleste.html).
+
+celeste.c + celeste.h is where the game code is, translated from the pico 8 lua code by hand.
+These files don't depend on anything other than the c standard library and don't perform any allocations (it uses its own internal global state).
+
+sdl12main.c provides a "frontend" written in SDL (plus SDL mixer) which implements graphics and audio output. It can be compiled on unix-like platforms by running
+```
+make
+```
+By default, SDL2 will be used. Read the Makefile for more information.
+
+3DS is also a supported platform. Compile to 3DS with:
+```
+make -f Makefile.3ds    # this will generate ccleste.3dsx
+```
+You will need devkitPro with these dkp packages installed:
+```
+3ds-sdl
+3ds-sdl_mixer
+libctru
+devkitARM
 ```
 
-A launch from the home screen shows the screen at once. Every button is the
-design's; holding OPTIONS for a second ends the title.
+# Controls
 
-## Growing it
+|PC                |3DS                |Action              |
+|:----------------:|:-----------------:|-------------------:|
+|LEFT              |LEFT               | Move left          |
+|RIGHT             |RIGHT              | Move right         |
+|DOWN              |DOWN               | Look down          |
+|UP                |UP                 | Look up            |
+|Z/C               |A                  | Jump               |
+|X/V               |B/X                | Dash               |
+|ESCAPE            |START              | Pause              |
+|E                 |L+R                | Toggle screenshake |
+|SHIFT+D           |Y+L                | Load state         |
+|SHIFT+S           |Y+R                | Save state         |
+|Hold F9           |Hold SELECT+START+Y| Reset              |
+|F11               |SELECT             | Fullscreen         |
 
-- **The screen** is `examples/celeste/kit/screen.cpp`: a class with `update(input, dt,
-  feedback)` and a const `draw(frame)`, assembled from the kit's components and
-  themes. The kit's guides are in PS5_VKHomebrewUI's `docs/` (CRAFT.md first, then
-  COMPONENTS.md, THEMES.md and KIT.md), its headers in `.deps/hui/src/`.
-- **The program** around it, `examples/celeste/celeste.cpp`, owns the frame: input, sound,
-  the light bar, the layers. A 3D scene goes under the screen as in the template's
-  `uioverlay` sample (`kit.renderer.import_texture`).
-- **Assets** go in `ps5/assets.json`, each with its origin and licence; only assets
-  with a clear licence are shipped (`ps5/ASSETS.md` is written from it).
-- How the foundation and the UI module work: PS5_VulkanTemplate's `ps5/README.md`
-  and `ps5/ui/README.md`; the agent skills for this stack are in its `skills/`.
+Controller input is also supported on PC (SDL2 ver) and web version. The controller must be plugged in when opening the game.
+The default mappings are: jump with A and dash with B (xbox360 controller layout), move with d-pad or the left stick, pause with start, save/load state with left/right shoulder, exit with guide (logo button).
+You can change these mappings by modifying the `ccleste-input-cfg.txt` file that will be created when you first run the game.
 
-## Licences
+You can make the game start up in fullscreen by setting the environment variable `CCLESTE_START_FULLSCREEN` to "1", or by creating the file `ccleste-start-fullscreen.txt` in the game directory (contents don't matter).
 
-The UI kit is GPL-3.0-or-later, and so are this title's program, its screen, the UI
-module (`ps5/ui/`) and the kit's sounds (`ps5/licenses/GPL-3.0.txt`); the kit's fonts
-are OFL-1.1 and Bitstream Vera (`ps5/ASSETS.md`). The rest of the foundation is MIT
-(`LICENSE.md`, Sascha Willems'; the PS5 layer is mine, under the same licence). The
-title as distributed is under GPL-3.0.
+# TAS playback and the fixed point question
+
+In order to playback a TAS, specify it as the first argument to the program when running it. On Windows you can drag the TAS file to the .exe to do this.
+The format for the TAS should be a text file that looks like "0,0,3,5,1,34,0,", where each number is the input bitfield and each frame is ended by a comma.
+The inputs in the TAS should start in the first loading frame of 100m (neglecting the title screen). When playing back a TAS the starting RNG seed will always be the same.
+
+Most other Celeste Classic ports use floating point numbers, but PICO-8 actually uses 16.16 fixed point numbers.
+For casual play and RTA speedrunning, the discrepancies are minor enough to be essentially negligible, however with TASing it might make a difference.
+Defining the preprocessor macro `CELESTE_P8_FIXEDP` when compiling celeste.c will use a bunch of preprocessor hacks to replace the float type for all the
+code of that file with a fixed point type that matches that of PICO-8. The use of this preprocessor macro requires compiling celeste.c with a C++ compiler, however (but not linking with the C++ standard library).
+
+Using make you can compile this fixed point version with `make USE_FIXEDP=1`.
+
+When playing back TASes made with other tools that work under the assumption of ideal RNG for balloons (since their hitbox depends on that), you can ensure that they do not desync by
+defining the preprocessor macro `CELESTE_P8_HACKED_BALLOONS`, which will make balloons static and always expand their hitbox to their full range.
+
+Using make you can turn on this feature with `make HACKED_BALLOONS=1`.
+
+You can combine both of these with `make HACKED_BALLOONS=1 USE_FIXEDP=1`.
+
+# credits
+
+Sound wave files are taken from [https://github.com/JeffRuLz/Celeste-Classic-GBA/tree/master/maxmod_data](https://github.com/JeffRuLz/Celeste-Classic-GBA/tree/master/maxmod_data),
+music ogg files were obtained by converting the .wav dumps from pico 8, which I did using audacity & ffmpeg.
+
+All credit for the original game goes to the original developers (Maddy Thorson & Noel Berry).

@@ -461,9 +461,6 @@ private:
 		if (p.pressed & PAD_OPTIONS) {
 			pause_pressed_ = true;
 		}
-		if (p.pressed & PAD_L1) {
-			screenshake_ = !screenshake_;
-		}
 	}
 
 	void step()
@@ -623,9 +620,6 @@ private:
 	static int call(int what, ...)
 	{
 		Game &g = *instance;
-		if (!g.screenshake_) {
-			g.camera_x_ = g.camera_y_ = 0;
-		}
 		va_list args;
 		va_start(args, what);
 		int result = 0;
@@ -716,10 +710,8 @@ private:
 			break;
 		}
 		case CELESTE_P8_CAMERA: {
-			if (g.screenshake_) {
-				g.camera_x_ = va_arg(args, int);
-				g.camera_y_ = va_arg(args, int);
-			}
+			g.camera_x_ = va_arg(args, int);
+			g.camera_y_ = va_arg(args, int);
 			break;
 		}
 		case CELESTE_P8_FGET: {
@@ -761,7 +753,6 @@ private:
 	};
 	std::vector<Run> runs_;
 	int camera_x_ = 0, camera_y_ = 0;
-	bool screenshake_ = true;
 	bool paused_ = false;
 	bool pause_pressed_ = false;
 	bool death_ = false;
