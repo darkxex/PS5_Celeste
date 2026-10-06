@@ -3,10 +3,11 @@
 //
 // The cartridge draws through sixteen PICO-8 calls, which land here: a 128x128 picture
 // in the PICO-8 palette, rasterised on the CPU as the SDL front end of ccleste did.
-// The picture is scaled up eight times (so the GPU's filter only softens its edges,
-// never its pixels) into a texture the kit's Vulkan renderer draws, centred, at 1080
-// high. Its sound goes through the kit's mixer: the cartridge's effects as clips, and
-// its five songs as a stream, on the console's audio output.
+// The picture is scaled up eight times into a 1024x1024 texture that the kit's Vulkan
+// renderer draws centred, texel for texel (the kit's sampler is bilinear, so the size
+// is what keeps the pixels sharp: every PICO-8 pixel is an 8x8 block). Its sound goes
+// through the kit's mixer: the cartridge's effects as clips, and its five songs as a
+// stream, on the console's audio output.
 //
 // Copyright (C) 2026 Mihawk
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -395,6 +396,7 @@ public:
 			clock_ -= kStep;
 			steps++;
 			step();
+			sliding_ = !paused_ && Celeste_P8_is_wall_sliding();
 		}
 		if (clock_ > kStep) {
 			clock_ = 0.0f; // a stall is not caught up with
@@ -406,14 +408,27 @@ public:
 			death_ = false;
 			feedback.rumble(0.8f, 0.25f);
 		}
+		// A faint tick every 0.2 s of a wall slide
+		slide_clock_ = sliding_ ? slide_clock_ - dt : 0.0f;
+		if (sliding_ && slide_clock_ <= 0.0f) {
+			slide_clock_ = 0.2f;
+			feedback.rumble(0.1f, 0.04f);
+		}
+		if (dash_) {
+			dash_ = false;
+			feedback.rumble(0.05f, 0.25f); // a light tick; a death's rumble wins if both happen
+		}
 	}
 
 	void draw(app::Frame &frame) const override
 	{
 		gfx::DrawList &list = frame.scene;
 		if (texture_ != 0) {
-			const float side = gfx::kVirtualHeight;
-			list.image(texture_, { (gfx::kVirtualWidth - side) * 0.5f, 0.0f, side, side }, gfx::kFullUv,
+			// One texel to one virtual pixel, on whole pixels: the kit's sampler is
+			// bilinear, which then has nothing to blend
+			const float side = (float)kTexture;
+			list.image(texture_, { (gfx::kVirtualWidth - side) * 0.5f, (gfx::kVirtualHeight - side) * 0.5f, side, side },
+				gfx::kFullUv,
 				gfx::Color{ 1.0f, 1.0f, 1.0f, 1.0f });
 		}
 	}
@@ -631,6 +646,8 @@ private:
 			g.sound_.sfx(id);
 			if (id == 0) {
 				g.death_ = true;
+			} else if (id == 3) {
+				g.dash_ = true; // the dash's own sound
 			}
 			break;
 		}
@@ -731,6 +748,9 @@ private:
 	bool paused_ = false;
 	bool pause_pressed_ = false;
 	bool death_ = false;
+	bool dash_ = false;
+	bool sliding_ = false;
+	float slide_clock_ = 0.0f;
 	std::uint16_t held_ = 0, tapped_ = 0, buttons_ = 0;
 	float clock_ = 0.0f;
 };
